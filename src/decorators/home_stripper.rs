@@ -17,10 +17,7 @@ impl Decorator for HomeStripper {
         if let Some(home_dir) = dirs::home_dir() {
             match self.path.strip_prefix(home_dir) {
                 Ok(suffix) => PathBuf::from("~").join(suffix),
-                Err(e) => {
-                    eprintln!("Couldn't strip: {e}");
-                    self.path.clone()
-                }
+                Err(_) => self.path.clone(),
             }
         } else {
             eprintln!("Couldn't get home directory");
