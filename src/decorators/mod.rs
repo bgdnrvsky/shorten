@@ -3,10 +3,12 @@ pub(crate) use std::path::PathBuf;
 
 mod canicolizer;
 mod home_stripper;
+mod shortener;
 mod tico;
 
 pub use canicolizer::Canicolizer;
 pub use home_stripper::HomeStripper;
+pub use shortener::Shortener;
 pub use tico::Tico;
 
 pub(crate) trait Decorator {

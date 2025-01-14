@@ -1,4 +1,4 @@
-mod cli;
+pub mod cli;
 mod decorators;
 
 use cli::Shorten;
@@ -20,6 +20,10 @@ fn main() {
 
     if shorten.tico {
         path = Box::new(Tico::new(path));
+    }
+
+    if shorten.shorten {
+        path = Box::new(Shortener::new(path, shorten.path_shortener));
     }
 
     print!("{}", path.decorate().display());
