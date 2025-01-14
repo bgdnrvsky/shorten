@@ -4,7 +4,7 @@ use super::{Decorator, PathBuf};
 
 use std::ffi::OsStr;
 use std::os::unix::ffi::OsStrExt;
-use std::path::{Component, MAIN_SEPARATOR};
+use std::path::Component;
 
 pub struct Tico {
     path: PathBuf,
@@ -22,21 +22,11 @@ impl Decorator for Tico {
     fn decorate(&self) -> PathBuf {
         let mut components = self.path.components().collect::<Vec<_>>();
 
-        let ends_with_separator = self.path.to_string_lossy().ends_with(MAIN_SEPARATOR);
-
-        if ends_with_separator {
-            components.push(Component::RootDir);
-        }
-
         for component in components.iter_mut().rev().skip(1).rev() {
             if let Component::Normal(osstr) = component {
                 let first: char = osstr.to_string_lossy().chars().next().unwrap();
                 *osstr = OsStr::from_bytes(&osstr.as_bytes()[..first.len_utf8()]);
             }
-        }
-
-        if ends_with_separator {
-            components.pop();
         }
 
         PathBuf::from_iter(components)
@@ -74,10 +64,6 @@ mod tests {
         assert_eq!(
             Tico::new(PathBuf::from("~/work/personal/tico")).decorate(),
             PathBuf::from("~/w/p/tico")
-        );
-        assert_eq!(
-            Tico::new(PathBuf::from("~/work/personal/tico/")).decorate(),
-            PathBuf::from("~/w/p/t/")
         );
         assert_eq!(
             Tico::new(PathBuf::from("~/work/ééé/tico")).decorate(),
