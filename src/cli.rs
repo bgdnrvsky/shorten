@@ -12,7 +12,7 @@ pub struct Shorten {
     #[arg(short, long, action=ArgAction::SetTrue)]
     pub canonicalize: bool,
 
-    // Replace prefix home directory with ~ if possible
+    /// Replace prefix home directory with ~ if possible
     #[arg(long, action=ArgAction::SetTrue)]
     pub home: bool,
 
