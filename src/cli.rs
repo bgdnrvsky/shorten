@@ -5,6 +5,7 @@ use clap::Args;
 use clap::Parser;
 
 #[derive(Parser)]
+#[command(version)]
 pub struct Shorten {
     /// The path to shorten
     pub path: PathBuf,
