@@ -24,8 +24,11 @@ impl Decorator for Tico {
 
         for component in components.iter_mut().rev().skip(1).rev() {
             if let Component::Normal(osstr) = component {
-                let first: char = osstr.to_string_lossy().chars().next().unwrap();
-                *osstr = OsStr::from_bytes(&osstr.as_bytes()[..first.len_utf8()]);
+                let cow = osstr.to_string_lossy();
+                let mut chars = cow.chars().peekable();
+                let take_length = if let Some('.') = chars.peek() { 2 } else { 1 };
+                let prefix = chars.take(take_length);
+                *osstr = OsStr::from_bytes(&osstr.as_bytes()[..prefix.map(char::len_utf8).sum()]);
             }
         }
 
@@ -68,6 +71,14 @@ mod tests {
         assert_eq!(
             Tico::new(PathBuf::from("~/work/ééé/tico")).decorate(),
             PathBuf::from("~/w/é/tico")
+        );
+    }
+
+    #[test]
+    fn with_dot_prefixed() {
+        assert_eq!(
+            Tico::new(PathBuf::from("/home/feodot/.local/share/.hidden")).decorate(),
+            PathBuf::from("/h/f/.l/s/.hidden")
         );
     }
 }
