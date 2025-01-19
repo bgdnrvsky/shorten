@@ -3,7 +3,6 @@
 use super::{Decorator, PathBuf};
 
 use std::ffi::OsStr;
-use std::os::unix::ffi::OsStrExt;
 use std::path::Component;
 
 pub struct Tico {
@@ -28,7 +27,19 @@ impl Decorator for Tico {
                 let mut chars = cow.chars().peekable();
                 let take_length = if let Some('.') = chars.peek() { 2 } else { 1 };
                 let prefix = chars.take(take_length);
-                *osstr = OsStr::from_bytes(&osstr.as_bytes()[..prefix.map(char::len_utf8).sum()]);
+                #[cfg(unix)]
+                {
+                    *osstr =
+                        OsStr::from_bytes(&osstr.as_bytes()[..prefix.map(char::len_utf8).sum()]);
+                }
+                #[cfg(windows)]
+                {
+                    unsafe {
+                        *osstr = OsStr::from_encoded_bytes_unchecked(
+                            &osstr.as_encoded_bytes()[..prefix.map(char::len_utf8).sum()],
+                        );
+                    }
+                }
             }
         }
 
