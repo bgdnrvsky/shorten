@@ -29,6 +29,7 @@ impl Decorator for Tico {
                 let prefix = chars.take(take_length);
                 #[cfg(unix)]
                 {
+                    use std::os::unix::ffi::OsStrExt;
                     *osstr =
                         OsStr::from_bytes(&osstr.as_bytes()[..prefix.map(char::len_utf8).sum()]);
                 }
