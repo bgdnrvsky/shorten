@@ -1,24 +1,24 @@
 use super::{Decorator, PathBuf};
 
-pub struct Canicolizer {
-    path: PathBuf,
+pub struct Canicolizer<D> {
+    wrapee: D,
 }
 
-impl Canicolizer {
-    pub fn new(path: impl Decorator) -> Self {
-        Self {
-            path: path.decorate(),
-        }
+impl<D> Canicolizer<D> {
+    pub fn new(wrapee: D) -> Self {
+        Self { wrapee }
     }
 }
 
-impl Decorator for Canicolizer {
+impl<D: Decorator> Decorator for Canicolizer<D> {
     fn decorate(&self) -> PathBuf {
-        match self.path.canonicalize() {
+        let path = self.wrapee.decorate();
+
+        match path.canonicalize() {
             Ok(decorated) => decorated,
             Err(e) => {
                 eprintln!("Couldn't canonicalize: {e}");
-                self.path.clone()
+                path.clone()
             }
         }
     }

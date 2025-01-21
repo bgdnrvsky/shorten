@@ -1,4 +1,3 @@
-pub(crate) use std::path::Path;
 pub(crate) use std::path::PathBuf;
 
 mod canicolizer;
@@ -15,14 +14,38 @@ pub(crate) trait Decorator {
     fn decorate(&self) -> PathBuf;
 }
 
-impl<P: AsRef<Path>> Decorator for P {
-    fn decorate(&self) -> PathBuf {
-        self.as_ref().to_owned()
+#[derive(Debug)]
+pub struct Plain {
+    path: PathBuf,
+}
+
+impl Plain {
+    pub fn new(path: PathBuf) -> Self {
+        Self { path }
+    }
+
+    #[cfg(test)]
+    pub fn path(self) -> PathBuf {
+        self.path
     }
 }
 
-impl Decorator for Box<dyn Decorator> {
+impl Decorator for Plain {
     fn decorate(&self) -> PathBuf {
-        self.as_ref().decorate()
+        self.path.clone()
+    }
+}
+
+impl<D: Decorator + ?Sized> Decorator for Box<D> {
+    #[inline]
+    fn decorate(&self) -> PathBuf {
+        D::decorate(self)
+    }
+}
+
+impl<D: Decorator + ?Sized> Decorator for &'_ D {
+    #[inline]
+    fn decorate(&self) -> PathBuf {
+        D::decorate(*self)
     }
 }

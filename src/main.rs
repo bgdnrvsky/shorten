@@ -8,7 +8,7 @@ use decorators::*;
 
 fn main() {
     let shorten = Shorten::parse();
-    let mut path: Box<dyn Decorator> = Box::new(shorten.path);
+    let mut path: Box<dyn Decorator> = Box::new(Plain::new(shorten.path));
 
     if shorten.canonicalize {
         path = Box::new(Canicolizer::new(path));

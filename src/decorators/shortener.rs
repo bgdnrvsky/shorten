@@ -3,23 +3,21 @@ use super::{Decorator, PathBuf};
 
 use std::path::Component;
 
-pub struct Shortener {
-    path: PathBuf,
+pub struct Shortener<D> {
+    wrapee: D,
     parameters: PathShortenerOptions,
 }
 
-impl Shortener {
-    pub fn new(path: impl Decorator, parameters: PathShortenerOptions) -> Self {
-        Self {
-            path: path.decorate(),
-            parameters,
-        }
+impl<D> Shortener<D> {
+    pub fn new(wrapee: D, parameters: PathShortenerOptions) -> Self {
+        Self { wrapee, parameters }
     }
 }
 
-impl Decorator for Shortener {
+impl<D: Decorator> Decorator for Shortener<D> {
     fn decorate(&self) -> PathBuf {
-        let components = self.path.components().collect::<Vec<_>>();
+        let path = self.wrapee.decorate();
+        let components = path.components().collect::<Vec<_>>();
 
         let starts_with_root = components.iter().peekable().peek() == Some(&&Component::RootDir);
         let mut left_param = self.parameters.left;
@@ -29,7 +27,7 @@ impl Decorator for Shortener {
         }
 
         if components.len() <= left_param + self.parameters.right {
-            return self.path.clone();
+            return path.clone();
         }
 
         let left = PathBuf::from_iter(components.iter().take(left_param));
@@ -43,6 +41,8 @@ impl Decorator for Shortener {
 mod tests {
     use super::*;
 
+    use crate::Plain;
+
     #[test]
     fn example() {
         let parameters = PathShortenerOptions {
@@ -51,7 +51,7 @@ mod tests {
             right: 2,
         };
         let path = PathBuf::from("this/is/a/very/long/path/");
-        let shortener = Shortener::new(path, parameters);
+        let shortener = Shortener::new(Plain::new(path), parameters);
 
         assert_eq!(shortener.decorate(), PathBuf::from("this/is/.../long/path"));
     }
@@ -64,10 +64,10 @@ mod tests {
             left: 2,
             right: 2,
         };
-        let path = PathBuf::from("a/b/c/d");
+        let path = Plain::new(PathBuf::from("a/b/c/d"));
         let shortener = Shortener::new(&path, parameters);
 
-        assert_eq!(shortener.decorate(), path);
+        assert_eq!(shortener.decorate(), path.path());
     }
 
     /// Shouldn't be an issue since the call to `components` normalizes it
@@ -79,7 +79,7 @@ mod tests {
             right: 2,
         };
         let path = PathBuf::from("a/very/long/path/that/needs/to/be/cut/");
-        let shortener = Shortener::new(path, parameters);
+        let shortener = Shortener::new(Plain::new(path), parameters);
 
         assert_eq!(shortener.decorate(), PathBuf::from("a/very/.../be/cut"));
     }
@@ -92,7 +92,7 @@ mod tests {
             right: 2,
         };
         let path = PathBuf::from("/a/very/long/path/that/needs/to/be/cut");
-        let shortener = Shortener::new(path, parameters);
+        let shortener = Shortener::new(Plain::new(path), parameters);
 
         assert_eq!(shortener.decorate(), PathBuf::from("/a/very/.../be/cut"));
     }
@@ -104,9 +104,9 @@ mod tests {
             left: 2,
             right: 2,
         };
-        let path = PathBuf::from("a/b/c");
+        let path = Plain::new(PathBuf::from("a/b/c"));
         let shortener = Shortener::new(&path, parameters);
 
-        assert_eq!(shortener.decorate(), path);
+        assert_eq!(shortener.decorate(), path.path());
     }
 }
