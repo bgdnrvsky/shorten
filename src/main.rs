@@ -8,23 +8,23 @@ use decorators::*;
 
 fn main() {
     let shorten = Shorten::parse();
-    let mut path: Box<dyn Decorator> = Box::new(Plain::new(shorten.path));
+    let mut decorator: Box<dyn Decorator> = Box::new(Plain::new(shorten.path));
 
     if shorten.canonicalize {
-        path = Box::new(Canicolizer::new(path));
+        decorator = Box::new(Canicolizer::new(decorator));
     }
 
     if shorten.home {
-        path = Box::new(HomeStripper::new(path));
+        decorator = Box::new(HomeStripper::new(decorator));
     }
 
     if shorten.tico {
-        path = Box::new(Tico::new(path));
+        decorator = Box::new(Tico::new(decorator));
     }
 
     if shorten.shorten {
-        path = Box::new(Shortener::new(path, shorten.path_shortener));
+        decorator = Box::new(Shortener::new(decorator, shorten.path_shortener));
     }
 
-    print!("{}", path.decorate().display());
+    print!("{}", decorator.decorate().display());
 }
