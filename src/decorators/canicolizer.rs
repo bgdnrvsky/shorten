@@ -1,4 +1,6 @@
-use super::{Decorator, PathBuf};
+use std::{borrow::Cow, path::Path};
+
+use super::Decorator;
 
 pub struct Canicolizer<D> {
     wrapee: D,
@@ -11,14 +13,14 @@ impl<D> Canicolizer<D> {
 }
 
 impl<D: Decorator> Decorator for Canicolizer<D> {
-    fn decorate(&self) -> PathBuf {
+    fn decorate(&self) -> Cow<Path> {
         let path = self.wrapee.decorate();
 
         match path.canonicalize() {
-            Ok(decorated) => decorated,
+            Ok(decorated) => Cow::Owned(decorated),
             Err(e) => {
                 eprintln!("Couldn't canonicalize: {e}");
-                path.clone()
+                path
             }
         }
     }

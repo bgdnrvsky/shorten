@@ -2,8 +2,9 @@
 
 use super::{Decorator, PathBuf};
 
+use std::borrow::Cow;
 use std::ffi::OsStr;
-use std::path::Component;
+use std::path::{Component, Path};
 
 pub struct Tico<D> {
     wrapee: D,
@@ -16,7 +17,7 @@ impl<D> Tico<D> {
 }
 
 impl<D: Decorator> Decorator for Tico<D> {
-    fn decorate(&self) -> PathBuf {
+    fn decorate(&self) -> Cow<Path> {
         let path = self.wrapee.decorate();
         let mut components = path.components().collect::<Vec<_>>();
 
@@ -43,7 +44,7 @@ impl<D: Decorator> Decorator for Tico<D> {
             }
         }
 
-        PathBuf::from_iter(components)
+        Cow::Owned(PathBuf::from_iter(components))
     }
 }
 

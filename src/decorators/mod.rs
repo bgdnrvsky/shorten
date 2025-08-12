@@ -1,4 +1,5 @@
-pub(crate) use std::path::PathBuf;
+use std::borrow::Cow;
+pub(crate) use std::path::{Path, PathBuf};
 
 mod canicolizer;
 mod home_stripper;
@@ -11,7 +12,7 @@ pub use shortener::Shortener;
 pub use tico::Tico;
 
 pub(crate) trait Decorator {
-    fn decorate(&self) -> PathBuf;
+    fn decorate(&self) -> Cow<Path>;
 }
 
 #[derive(Debug)]
@@ -25,27 +26,27 @@ impl Plain {
     }
 
     #[cfg(test)]
-    pub fn path(self) -> PathBuf {
-        self.path
+    pub fn path(&self) -> &Path {
+        &self.path
     }
 }
 
 impl Decorator for Plain {
-    fn decorate(&self) -> PathBuf {
-        self.path.clone()
+    fn decorate(&self) -> Cow<Path> {
+        Cow::Borrowed(&self.path)
     }
 }
 
 impl<D: Decorator + ?Sized> Decorator for Box<D> {
     #[inline]
-    fn decorate(&self) -> PathBuf {
+    fn decorate(&self) -> Cow<Path> {
         D::decorate(self)
     }
 }
 
 impl<D: Decorator + ?Sized> Decorator for &'_ D {
     #[inline]
-    fn decorate(&self) -> PathBuf {
+    fn decorate(&self) -> Cow<Path> {
         D::decorate(*self)
     }
 }

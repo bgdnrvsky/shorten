@@ -1,7 +1,8 @@
 use super::super::cli::PathShortenerOptions;
 use super::{Decorator, PathBuf};
 
-use std::path::Component;
+use std::borrow::Cow;
+use std::path::{Component, Path};
 
 pub struct Shortener<D> {
     wrapee: D,
@@ -15,7 +16,7 @@ impl<D> Shortener<D> {
 }
 
 impl<D: Decorator> Decorator for Shortener<D> {
-    fn decorate(&self) -> PathBuf {
+    fn decorate(&self) -> Cow<Path> {
         let path = self.wrapee.decorate();
         let components = path.components().collect::<Vec<_>>();
 
@@ -27,13 +28,13 @@ impl<D: Decorator> Decorator for Shortener<D> {
         }
 
         if components.len() <= left_param + self.parameters.right {
-            return path.clone();
+            return path;
         }
 
         let left = PathBuf::from_iter(components.iter().take(left_param));
         let right = PathBuf::from_iter(components.iter().rev().take(self.parameters.right).rev());
 
-        left.join(self.parameters.replacement.clone()).join(right)
+        Cow::Owned(left.join(self.parameters.replacement.clone()).join(right))
     }
 }
 
