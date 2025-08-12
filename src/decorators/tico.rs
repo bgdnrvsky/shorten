@@ -27,20 +27,15 @@ impl<D: Decorator> Decorator for Tico<D> {
                 let mut chars = cow.chars().peekable();
                 let take_length = if let Some('.') = chars.peek() { 2 } else { 1 };
                 let prefix = chars.take(take_length);
-                #[cfg(unix)]
-                {
-                    use std::os::unix::ffi::OsStrExt;
-                    *osstr =
-                        OsStr::from_bytes(&osstr.as_bytes()[..prefix.map(char::len_utf8).sum()]);
-                }
-                #[cfg(windows)]
-                {
-                    unsafe {
-                        *osstr = OsStr::from_encoded_bytes_unchecked(
-                            &osstr.as_encoded_bytes()[..prefix.map(char::len_utf8).sum()],
-                        );
-                    }
-                }
+
+                // SAFETY:
+                //  1. Calling OsStr::from_encoded_bytes_unchecked(osstr.as_encoded_bytes()) is safe
+                //  2. Slicing encoded bytes will not result in invalid byte sequence thanks to `prefix.map(char::len_utf8).sum()`
+                *osstr = unsafe {
+                    OsStr::from_encoded_bytes_unchecked(
+                        &osstr.as_encoded_bytes()[..prefix.map(char::len_utf8).sum()],
+                    )
+                };
             }
         }
 
